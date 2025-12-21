@@ -82,8 +82,8 @@ function calcDual(){
 function checkVs(){
     let A = document.getElementById("vsA").value;
     let B = document.getElementById("vsB").value;
-    let AB = chart[B][A] || 1;
-    let BA = chart[A][B] || 1;
+    let AB = chart[A][B] || 1;
+    let BA = chart[B][A] || 1;
 
     document.getElementById("vsResults").innerHTML =
         `<b>${A} → ${B}:</b> ${describe(AB)}<br>` +
