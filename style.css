@@ -1,0 +1,189 @@
+
+body {
+    background: #111;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    padding: 0;
+    margin: 0;
+}
+
+.content{
+    padding: 20px;
+    text-align: center;
+}
+
+.navbar {
+    background: #1a1a1a;
+    padding: 10px 20px;
+    display: flex;
+    gap: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.navbar a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+.navbar a:hover,
+.navbar a.active {
+    background: #333;
+}
+
+/* Footer full width like navbar */
+.footer {
+    background: #1a1a1a;      /* same as navbar */
+    color: #fff;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 14px;
+    border-top: 1px solid #333;  /* subtle separation */
+    width: 100%;                 /* full width */
+    box-sizing: border-box;      /* include padding in width */
+}
+
+.footer a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.footer a:hover {
+    background: #333;
+}
+
+
+
+
+/* Table & Calculator */
+.resp-scroll {
+    overflow-x: auto;   /* Allows horizontal scroll */
+    width: 100%;        /* Fill screen */
+    margin: 20px auto;
+}
+
+
+
+.type-table {
+    border-collapse: collapse;
+    width: 100%;          /* Fill container */
+    table-layout: auto;   /* Columns adjust automatically */
+    background: #1a1a1a;
+    border-radius: 10px;
+}
+
+
+.type-table th,
+.type-table td {
+    border: 1px solid #333;
+    text-align: center;
+    padding: 6px;
+    font-size: 14px;
+    word-wrap: break-word; /* Avoid overflow text */
+}
+
+
+.type-table thead th {
+    background: #222;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.type-table tbody th {
+    background: #202020;
+    position: sticky;
+    left: 0;
+    z-index: 4;
+}
+
+.type-icon {
+    display: inline-block;
+    padding: 4px 6px;
+    border-radius: 4px;
+    color: #fff;
+    font-weight: bold;
+}
+
+/* Soft type colors */
+.type-normal{background:#a8a8a8;} .type-fire{background:#f08a47;} .type-water{background:#6fa0ff;} .type-electric{background:#ffe169;color:#000;} .type-grass{background:#7dd97d;} .type-ice{background:#a8e3e3;color:#000;} .type-fighting{background:#d25d55;} .type-poison{background:#c070c9;} .type-ground{background:#e8c98a;color:#000;} .type-flying{background:#b9a5ff;} .type-psychic{background:#ff7aa1;} .type-bug{background:#c3d645;} .type-rock{background:#d6c273;} .type-ghost{background:#8f7ac4;} .type-dragon{background:#7d63ff;} .type-dark{background:#8b7462;} .type-steel{background:#c6c6e0;color:#000;} .type-fairy{background:#ffb4c7;}
+
+/* EFFECTIVENESS COLORS FOR TABLE ONLY */
+.type-fx-200 { background: #3fa76f; }   
+.type-fx-100 { background: #2a2a2a; }   
+.type-fx-50  { background: #c45c5c; }   
+.type-fx-0   { background: #803232; }   
+
+.type-table td:hover,
+.type-table th:hover {
+    background: #444 !important;
+}
+
+#result .type-table {
+    width: 80%;              /* smaller than full width */
+    max-width: 600px;        /* prevents it from being massive */
+    margin: 20px auto;       /* centers it */
+    font-size: 13px;
+}
+
+#result .type-table th,
+#result .type-table td {
+    padding: 5px 8px;
+}
+
+/* Calculator box */
+.calc-box {
+    margin-top: 30px;
+    background: #1a1a1a;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #333;
+}
+
+select, button {
+    padding: 6px 10px;
+    background: #222;
+    color: #fff;
+    border: 1px solid #444;
+    margin: 5px;
+    border-radius: 6px;
+}
+
+button:hover { background: #333; }
+
+#dualResults,#vsResults{
+    margin-top:10px;
+    font-size:16px;
+}
+
+
+@media (max-width: 500px) {
+    #result .type-table {
+        width: 95%;
+        font-size: 11px;
+    }
+
+    #result img {
+        width: 180px;
+    }
+}
+
+#result img {
+    width: 220px;        /* make image bigger */
+    max-width: 90%;
+    image-rendering: pixelated; /* keeps sprites sharp */
+    margin: 10px auto 20px;
+    display: block;
+}
+
+
+.effective { color: #3fa76f; }  /* green for super-effective */
+.not-effective { color: #c45c5c; } /* red for not very effective */
+.no-effect { color: #803232; }  /* dark red for no effect */
