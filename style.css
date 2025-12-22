@@ -162,17 +162,7 @@ button:hover { background: #333; }
     margin-top:10px;
     font-size:16px;
 }
-@media (max-width: 500px) {
-    .type-table th,
-    .type-table td {
-        font-size: 10px;
-        padding: 3px;
-    }
-    .type-icon {
-        padding: 2px 4px;
-        font-size: 9px;
-    }
-}
+
 
 @media (max-width: 500px) {
     #result .type-table {
