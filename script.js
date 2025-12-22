@@ -1,5 +1,17 @@
 const types=["Normal","Fire","Water","Electric","Grass","Ice","Fighting","Poison","Ground","Flying","Psychic","Bug","Rock","Ghost","Dragon","Dark","Steel","Fairy"];
-
+const genMap = {
+  1: ["red-blue", "yellow"],
+  2: ["gold-silver", "crystal"],
+  3: ["ruby-sapphire", "emerald", "firered-leafgreen"],
+  4: ["diamond-pearl", "platinum", "heartgold-soulsilver"],
+  5: ["black-white", "black-2-white-2"],
+  6: ["x-y", "omega-ruby-alpha-sapphire"],
+  7: ["sun-moon", "ultra-sun-ultra-moon"],
+  8: ["sword-shield", "brilliant-diamond-shining-pearl", "legends-arceus"],
+  9: ["scarlet-violet"]
+};
+let cachedMoves = [];
+const moveTypeCache = {};
 const chart={
 Normal:{Rock:0.5,Ghost:0,Steel:0.5},
 Fire:{Fire:0.5,Water:0.5,Grass:2,Ice:2,Bug:2,Rock:0.5,Dragon:0.5,Steel:2},
@@ -82,13 +94,189 @@ function calcDual(){
 function checkVs(){
     let A = document.getElementById("vsA").value;
     let B = document.getElementById("vsB").value;
-    let AB = chart[B][A] || 1;
-    let BA = chart[A][B] || 1;
+    let AB = chart[A][B] || 1;
+    let BA = chart[B][A] || 1;
 
     document.getElementById("vsResults").innerHTML =
         `<b>${A} → ${B}:</b> ${describe(AB)}<br>` +
         `<b>${B} → ${A}:</b> ${describe(BA)}`;
 }
+
+let allPokemon = [];
+
+async function getMoveType(move) {
+  if (moveTypeCache[move.name]) {
+    return moveTypeCache[move.name];
+  }
+
+  const res = await fetch(move.url);
+  const data = await res.json();
+
+  const type = data.type.name;
+  moveTypeCache[move.name] = type; // cache it
+  return type;
+}
+
+
+// Fetch all Pokémon names for fuzzy search
+fetch('https://pokeapi.co/api/v2/pokemon?limit=10000')
+  .then(res => res.json())
+  .then(data => {
+    allPokemon = data.results.map(p => p.name);
+    window.fuse = new Fuse(allPokemon, { includeScore: true, threshold: 0.4 });
+  });
+
+// Fetch species for Pokédex entry
+async function getSpecies(name) {
+  const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${name}`);
+  const data = await res.json();
+  const flavorEntry = data.flavor_text_entries.find(e => e.language.name === "en");
+  return flavorEntry ? flavorEntry.flavor_text.replace(/\n|\f/g, ' ') : "No Pokédex entry found.";
+}
+
+// Search function
+async function searchPokemon() {
+  const query = document.getElementById('search').value.toLowerCase();
+  let match = query;
+
+  if (window.fuse) {
+    const results = fuse.search(query);
+    if (results.length > 0) match = results[0].item;
+  }
+
+  try {
+    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${match}`);
+    const data = await res.json();
+    const dexEntry = await getSpecies(match);
+
+    cachedMoves = [];
+
+data.moves.forEach(move => {
+  move.version_group_details.forEach(vgd => {
+    if (vgd.move_learn_method.name === "level-up") {
+      cachedMoves.push({
+        name: move.move.name,
+        level: vgd.level_learned_at,
+        version: vgd.version_group.name,
+        url: move.move.url
+      });
+    }
+  });
+});
+
+    let html = `
+      <h2>${data.name.toUpperCase()}</h2>
+      <p><strong>Types:</strong> ${data.types.map(t => `<span class="type-icon type-${t.type.name}">${t.type.name}</span>`).join(' ')}</p>
+      <p><strong>Pokédex Entry:</strong> ${dexEntry}</p>
+      <img src="${data.sprites.front_default}" alt="${data.name}" />
+      <label><strong>Game Generation:</strong></label>
+<select id="genSelect" onchange="updateMoveTable()">
+  <option value="all">All</option>
+  <option value="1">Red/Blue</option>
+  <option value="2">Gold/Silver</option>
+  <option value="3">Saph/Ruby</option>
+  <option value="4">Diam/Pearl</option>
+  <option value="5">Black/White</option>
+  <option value="6">X/Y</option>
+  <option value="7">Sun/Moon</option>
+  <option value="8">Sword/Sheild</option>
+  <option value="9">Scarlet/Violet</option>
+</select>
+
+<h3>Moves Learned by Level-Up</h3>
+<table class="type-table">
+        <thead>
+          <tr>
+            <th>Level</th>
+            <th>Move</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    // Collect unique level-up moves
+const moveMap = new Map();
+
+data.moves.forEach(move => {
+  const levelUp = move.version_group_details
+    .filter(v => v.move_learn_method.name === "level-up")
+    .sort((a, b) => b.level_learned_at - a.level_learned_at)[0];
+
+  if (levelUp) {
+    if (
+      !moveMap.has(move.move.name) ||
+      levelUp.level_learned_at < moveMap.get(move.move.name).level
+    ) {
+      moveMap.set(move.move.name, {
+        name: move.move.name,
+        level: levelUp.level_learned_at,
+        url: move.move.url
+      });
+    }
+  }
+});
+
+// Sort moves by level
+const moves = [...moveMap.values()].sort((a, b) => a.level - b.level);
+
+// Build rows
+for (const m of moves) {
+  const type = await getMoveType({ name: m.name, url: m.url });
+
+  html += `
+    <tr>
+      <td>${m.level}</td>
+      <td>${m.name}</td>
+      <td>
+        <span class="type-icon type-${type}">${type}</span>
+      </td>
+    </tr>
+  `;
+}
+
+
+    html += `</tbody></table>`;
+    document.getElementById('result').innerHTML = html;
+
+    updateMoveTable();
+
+  } catch {
+    document.getElementById('result').innerText = "Pokémon not found!";
+  }
+}
+
+async function updateMoveTable() {
+  const gen = document.getElementById("genSelect")?.value || "all";
+  const tbody = document.querySelector(".type-table tbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  const moveMap = new Map();
+
+  cachedMoves.forEach(m => {
+    if (gen !== "all" && !genMap[gen].includes(m.version)) return;
+
+    if (!moveMap.has(m.name) || m.level < moveMap.get(m.name).level) {
+      moveMap.set(m.name, m);
+    }
+  });
+
+  const moves = [...moveMap.values()].sort((a, b) => a.level - b.level);
+
+  for (const m of moves) {
+    const type = await getMoveType(m);
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${m.level}</td>
+        <td>${m.name}</td>
+        <td><span class="type-icon type-${type}">${type}</span></td>
+      </tr>`;
+  }
+}
+
 
 
 buildTable();
